@@ -1,1 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI ContentPilot - Scheduler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #0B0E14; 
+            color: white; 
+            overflow-x: hidden;
+        }
+        .mesh-gradient {
+            background: radial-gradient(circle at 50% 0%, #2e1065 0%, #0b0e14 70%);
+        }
+        /* Reduced calendar size */
+        .calendar-card {
+            background: #151921;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            max-width: 400px; /* Constrained width */
+            margin: 0 auto;
+        }
+        .info-card {
+            background: #151921;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+        }
+        .day-label {
+            color: #6B7280;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .calendar-day:hover:not(.empty) {
+            background: rgba(124, 58, 237, 0.2);
+        }
+        .calendar-day.active {
+            background: white;
+            color: black;
+            font-weight: 700;
+        }
+        .calendar-day.selected {
+            background: #7c3aed;
+            color: white;
+        }
+        .calendar-day.muted {
+            color: #374151;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0B0E14; }
+        ::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 10px; }
+    </style>
+</head>
+<body class="mesh-gradient min-h-screen">
 
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 border-r border-gray-800/50 flex flex-col p-6 hidden md:flex bg-[#0B0E14]">
+            <div class="flex items-center gap-3 mb-10 px-2">
+                <div class="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center shadow-lg shadow-violet-900/40">
+                    <i data-lucide="zap" class="text-white w-5 h-5 fill-current"></i>
+                </div>
+                <span class="font-bold text-sm tracking-tight uppercase">AI ContentPilot</span>
+            </div>
+            <nav class="space-y-1">
+                <a href="dashboard.html" class="flex items-center gap-3 p-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-wider hover:bg-white/5 transition-all">
+                    <i data-lucide="home" class="w-4 h-4"></i> Feed
+                </a>
+                <a href="create.html" class="flex items-center gap-3 p-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-wider hover:bg-white/5 transition-all">
+                    <i data-lucide="plus-square" class="w-4 h-4"></i> Create
+                </a>
+                <a href="#" class="flex items-center gap-3 p-3 rounded-xl text-xs font-bold text-white uppercase tracking-wider transition-all" style="background: rgba(124, 58, 237, 0.2); border-right: 3px solid #7c3aed;">
+                    <i data-lucide="calendar" class="w-4 h-4"></i> Scheduler
+                </a>
+                <!-- Corrected Redirect Link -->
+                <a href="analytics.html" class="flex items-center gap-3 p-3 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-wider hover:bg-white/5 transition-all">
+                    <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Analytics
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 md:p-12 overflow-y-auto">
+            <div class="max-w-xl mx-auto">
+                
+                <header class="mb-10 text-center">
+                    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight mb-4">
+                        Content <span class="">calendar</span>
+                    </h1>
+                </header>
+
+                <!-- Calendar Card -->
+                <div class="calendar-card p-6 mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <button class="p-2 hover:bg-white/5 rounded-lg transition-colors"><i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i></button>
+                        <h2 class="font-bold text-md">May 2026</h2>
+                        <button class="p-2 hover:bg-white/5 rounded-lg transition-colors"><i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></button>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1 mb-2 text-center">
+                        <div class="day-label">Su</div>
+                        <div class="day-label">Mo</div>
+                        <div class="day-label">Tu</div>
+                        <div class="day-label">We</div>
+                        <div class="day-label">Th</div>
+                        <div class="day-label">Fr</div>
+                        <div class="day-label">Sa</div>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1 text-center" id="calendar-grid">
+                        <div class="calendar-day muted">26</div>
+                        <div class="calendar-day muted">27</div>
+                        <div class="calendar-day muted">28</div>
+                        <div class="calendar-day muted">29</div>
+                        <div class="calendar-day muted">30</div>
+                        <div class="calendar-day">1</div>
+                        <div class="calendar-day active" data-date="2026-05-02">2</div>
+                        <div class="calendar-day" data-date="2026-05-03">3</div>
+                        <div class="calendar-day" data-date="2026-05-04">4</div>
+                        <div class="calendar-day" data-date="2026-05-05">5</div>
+                        <div class="calendar-day" data-date="2026-05-06">6</div>
+                        <div class="calendar-day" data-date="2026-05-07">7</div>
+                        <div class="calendar-day" data-date="2026-05-08">8</div>
+                        <div class="calendar-day" data-date="2026-05-09">9</div>
+                        <div class="calendar-day" data-date="2026-05-10">10</div>
+                        <div class="calendar-day" data-date="2026-05-11">11</div>
+                        <div class="calendar-day" data-date="2026-05-12">12</div>
+                        <div class="calendar-day" data-date="2026-05-13">13</div>
+                        <div class="calendar-day" data-date="2026-05-14">14</div>
+                        <div class="calendar-day" data-date="2026-05-15">15</div>
+                        <div class="calendar-day" data-date="2026-05-16">16</div>
+                    </div>
+
+                    <!-- Date Selection / Submit -->
+                    <div class="mt-6 pt-6 border-t border-white/5">
+                        <button onclick="submitSchedule()" class="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl transition-all active:scale-95 uppercase text-[10px] tracking-widest">
+                            Submit Schedule
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Posts Queued Card -->
+                <div class="info-card p-8">
+                    <div class="w-10 h-10 rounded-xl border border-cyan-400/30 flex items-center justify-center mb-6 text-cyan-400">
+                        <i data-lucide="calendar-check" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-2xl font-extrabold mb-2">0 posts queued</h3>
+                    <p class="text-gray-400 text-sm mb-8">Open drafts from Feed to schedule them.</p>
+                    
+                    <a href="create.html" class="block w-full bg-white text-center text-black font-bold py-4 rounded-2xl hover:bg-gray-200 transition-all active:scale-[0.98] uppercase text-xs tracking-widest">
+                        Create new content
+                    </a>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Navigation with Analytics Redirect -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-[#0B0E14] border-t border-gray-800 px-6 py-4 flex justify-between items-center z-50">
+        <a href="dashboard.html" class="flex flex-col items-center gap-1 text-gray-500">
+            <i data-lucide="home" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase">Feed</span>
+        </a>
+        <a href="create.html" class="flex flex-col items-center gap-1 text-gray-500">
+            <i data-lucide="plus-square" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase">Create</span>
+        </a>
+        <a href="scheduler.html" class="flex flex-col items-center gap-1 text-white">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase">Scheduler</span>
+        </a>
+        <a href="analytics.html" class="flex flex-col items-center gap-1 text-gray-500">
+            <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+            <span class="text-[10px] font-bold uppercase">Analytics</span>
+        </a>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Handle Date Selection
+        const days = document.querySelectorAll('.calendar-day:not(.muted)');
+        days.forEach(day => {
+            day.addEventListener('click', () => {
+                day.classList.toggle('selected');
+            });
+        });
+
+        function submitSchedule() {
+            const selected = document.querySelectorAll('.calendar-day.selected');
+            if(selected.length > 0) {
+                alert(`Scheduled for ${selected.length} day(s)`);
+            } else {
+                alert('Please select at least one date.');
+            }
+        }
+    </script>
+</body>
+</html>
