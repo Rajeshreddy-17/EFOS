@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Hackathon | Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0B0E14; overflow-x: hidden; }
+        .glass-card {
+            background: rgba(21, 25, 33, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .mesh-gradient {
+            background: radial-gradient(circle at 50% 0%, #2e1065 0%, #0b0e14 70%);
+        }
+        .input-glow:focus {
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
+        }
+        
+        /* Modern Toast Notification for Password Only */
+        #toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto;
+            transform: translateX(120%);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            background: rgba(30, 35, 45, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .toast.active { transform: translateX(0); }
+        .progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .progress::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+            background: #ef4444;
+        }
+        .toast.active .progress::before {
+            animation: progress 4s linear forwards;
+        }
+        @keyframes progress {
+            100% { width: 0%; }
+        }
+    </style>
+</head>
+<body class="mesh-gradient min-h-screen flex items-center justify-center p-4">
+
+    <!-- Toast Container for Password Alerts -->
+    <div id="toast-container">
+        <div id="toast" class="toast flex items-center gap-4 p-4 rounded-2xl shadow-2xl min-w-[320px] relative overflow-hidden">
+            <div class="p-2 rounded-xl bg-red-500/20">
+                <i data-lucide="shield-alert" class="text-red-500 w-6 h-6"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-white font-bold text-sm uppercase tracking-wider">Security Alert</p>
+                <p id="toast-msg" class="text-gray-400 text-xs mt-0.5 font-medium"></p>
+            </div>
+            <div class="progress"></div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="w-full max-w-[480px] glass-card rounded-3xl overflow-hidden shadow-2xl relative">
+        <div class="p-8 sm:p-12 bg-[#0F1219]">
+            <div class="flex justify-between items-end mb-10">
+                <h2 id="form-title" class="text-3xl font-bold text-white tracking-tight">Login</h2>
+                <div class="text-right">
+                    <button onclick="toggleForm()" id="toggle-btn" class="text-violet-400 hover:text-violet-300 font-bold text-sm transition-colors">Create Account</button>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <button onclick="showAccountPicker()" class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-[#1A1F26] border border-gray-800 text-gray-300 hover:bg-[#252B35] transition-all group">
+                    <i data-lucide="chrome" class="w-5 h-5 group-hover:text-white"></i> 
+                    <span class="text-sm font-medium tracking-wide text-gray-200">Continue with Google</span>
+                </button>
+            </div>
+
+            <div class="relative flex items-center justify-center mb-8">
+                <div class="w-full border-t border-gray-800/50"></div>
+                <span class="absolute bg-[#0F1219] px-4 text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold">Or Email</span>
+            </div>
+
+            <form id="auth-form" class="space-y-5">
+                <div id="name-field" class="hidden space-y-2">
+                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider ml-1">Full Name</label>
+                    <input type="text" id="reg-name" placeholder="John Doe" class="w-full px-4 py-3.5 rounded-xl bg-[#161B22] border border-gray-800 text-white focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 input-glow transition-all outline-none text-sm">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider ml-1">Email Address</label>
+                    <input type="email" id="auth-email" placeholder="hacker@technova.io" required class="w-full px-4 py-3.5 rounded-xl bg-[#161B22] border border-gray-800 text-white focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 input-glow transition-all outline-none text-sm">
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center px-1">
+                        <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Password</label>
+                        <a href="#" id="forgot-pw" class="text-[11px] text-violet-400 font-bold uppercase hover:underline">Forgot?</a>
+                    </div>
+                    <input type="password" id="auth-pass" placeholder="••••••••" required class="w-full px-4 py-3.5 rounded-xl bg-[#161B22] border border-gray-800 text-white focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 input-glow transition-all outline-none text-sm">
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-xl shadow-xl shadow-violet-900/20 transform active:scale-[0.95] transition-all mt-4 text-sm uppercase tracking-widest">
+                    <span id="submit-btn-text">Sign In</span>
+                </button>
+            </form>
+        </div>
+
+        <div id="account-picker" class="hidden absolute inset-0 bg-[#0F1219] z-50 p-8 flex flex-col items-center justify-center">
+            <i data-lucide="chrome" class="w-12 h-12 text-violet-500 mb-4"></i>
+            <h3 class="text-xl font-bold text-white mb-2">Choose an account</h3>
+            <p class="text-gray-500 text-sm mb-8 text-center leading-relaxed px-4">Continue to <span class="text-white font-semibold">Technova Hackathon 2026</span></p>
+            <div class="w-full space-y-3">
+                <div onclick="selectMockAccount('Jordan Smith', 'jordan.dev@gmail.com')" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-800 hover:bg-[#1A1F26] cursor-pointer transition-all border-l-4 border-l-blue-500">
+                    <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold text-white">J</div>
+                    <div class="text-left"><p class="text-white text-sm font-semibold">Jordan Smith</p><p class="text-gray-500 text-xs">jordan.dev@gmail.com</p></div>
+                </div>
+                <div onclick="selectMockAccount('Sarah Connor', 's.connor.hacks@gmail.com')" class="flex items-center gap-4 p-4 rounded-2xl border border-gray-800 hover:bg-[#1A1F26] cursor-pointer transition-all border-l-4 border-l-fuchsia-500">
+                    <div class="w-10 h-10 rounded-full bg-fuchsia-500 flex items-center justify-center font-bold text-white">S</div>
+                    <div class="text-left"><p class="text-white text-sm font-semibold">Sarah Connor</p><p class="text-gray-500 text-xs">s.connor.hacks@gmail.com</p></div>
+                </div>
+                <div onclick="hideAccountPicker()" class="text-center pt-6"><button class="text-gray-500 text-xs hover:text-white transition-all uppercase tracking-widest font-bold">Cancel</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        let isLogin = true;
+
+        // Toast ONLY for Password Validation
+        function showPasswordToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.add('active');
+            setTimeout(() => { toast.classList.remove('active'); }, 4000);
+        }
+
+        function toggleForm() {
+            isLogin = !isLogin;
+            document.getElementById('form-title').innerText = isLogin ? 'Login' : 'Sign Up';
+            document.getElementById('toggle-btn').innerText = isLogin ? 'Create Account' : 'Back to Login';
+            document.getElementById('submit-btn-text').innerText = isLogin ? 'Sign In' : 'Join Arena';
+            document.getElementById('name-field').classList.toggle('hidden', isLogin);
+            document.getElementById('forgot-pw').classList.toggle('hidden', !isLogin);
+        }
+
+        function showAccountPicker() { document.getElementById('account-picker').classList.remove('hidden'); }
+        function hideAccountPicker() { document.getElementById('account-picker').classList.add('hidden'); }
+
+        function selectMockAccount(name, email) {
+            const userData = { name, email, method: 'google' };
+            localStorage.setItem('currentUser', JSON.stringify(userData));
+            alert(`Logged in as ${name} via Google`); // Follows previous alert style
+            hideAccountPicker();
+        }
+
+        document.getElementById('auth-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+
+            // 1. PASSWORD VALIDATION (New Toast Alert)
+            if (!isLogin) {
+                const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+                let errors = [];
+                
+                if (pass.length < 6) errors.push("Minimum 6 characters");
+                if (!specialCharRegex.test(pass)) errors.push("Include 1 special character");
+
+                if (errors.length > 0) {
+                    showPasswordToast(errors.join(" and ") + " required.");
+                    return;
+                }
+            }
+
+            // 2. OTHER ACTIONS (Follows previous alert style)
+            if (isLogin) {
+                const storedUser = localStorage.getItem(email);
+                if (storedUser) {
+                    const parsed = JSON.parse(storedUser);
+                    if (parsed.password === pass) {
+                        alert("Login Successful! Welcome.");
+                    } else {
+                        alert("Incorrect Password.");
+                    }
+                } else {
+                    alert("Account not found. Please Sign Up.");
+                }
+            } else {
+                const name = document.getElementById('reg-name').value;
+                const newUser = { name, email, password: pass };
+                localStorage.setItem(email, JSON.stringify(newUser));
+                alert("Account created successfully!");
+                toggleForm();
+            }
+        });
+    </script>
+</body>
+</html>
